@@ -1,5 +1,7 @@
+NAME := bootc-example
+
 container:
-	podman build -t bootc-test .
+	podman build -t ${NAME} .
 
 installer-container:
 	podman build -t bootc-installer installer
@@ -17,7 +19,7 @@ installer: container installer-container
 		--volume /var/lib/containers/storage:/var/lib/containers/storage \
 		quay.io/centos-bootc/bootc-image-builder:latest \
 		--type bootc-installer \
-		--installer-payload-ref localhost/bootc-test:latest \
+		--installer-payload-ref ${NAME} \
 		--use-librepo=True \
 		--rootfs ext4 \
 		--chown $$(id -u $$(logname)):$$(id -g $$(logname)) \

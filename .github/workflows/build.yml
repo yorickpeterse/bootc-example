@@ -1,0 +1,31 @@
+---
+name: Build container
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  NAMESPACE: ${{ github.repository }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in
+        run: podman login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+      - name: Build container
+        run: make container NAME=${{ env.REGISTRY }}/${{ env.NAMESPACE }}:${{ github.ref_name }} .
+      - name: Push container
+        run: podman push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}:${{ github.ref_name }}
