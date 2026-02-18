@@ -3,11 +3,21 @@ contents = """
 text
 zerombr
 clearpart --all --initlabel --disklabel=gpt
-autopart --noswap --type=plain --fstype=ext4
+autopart --noswap --type=plain --fstype=ext4 --encrypted --passphrase 1234567890
 rootpw --lock
 
 %post --erroronfail
 grep \"boot \" /etc/fstab > /etc/fstab-new
 mv /etc/fstab-new /etc/fstab
+
+env PASSWORD=1234567890 \
+  systemd-cryptenroll --wipe-slot tpm2 --tpm2-device auto \
+  --tpm2-pcrs 7+15 \
+  $(blkid --match-token TYPE=crypto_LUKS --output device)
+
+env PASSWORD=1234567890 \
+  systemd-cryptenroll --wipe-slot 0 \
+  $(blkid --match-token TYPE=crypto_LUKS --output device)
+
 %end
 """
